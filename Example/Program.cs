@@ -20,6 +20,7 @@ namespace Example
             requestWithJsonElementAsResponse();
             requestWithStatusCodeAsResult();
             requestWithJsonAsObject();
+            requestWithPostObject();
         }
 
         private static void requestWithJsonElementAsResponse()
@@ -50,6 +51,18 @@ namespace Example
                         .SendGet<JsonToObject>()
                         .GetAwaiter().GetResult();
             Console.WriteLine($"\n>>> Result as object: {response.Data.Email}");
+        }
+
+        private static void requestWithPostObject()
+        {
+            var postObj = new ObjToJson { Job = "leader", Name = "morpheus" };
+
+            var response = RestWrapper.CreateWithHttpClient(_client)
+                        .Url($"https://reqres.in/api/users/2")
+                        .Build()
+                        .SendPost<JsonElement, ObjToJson>(postObj)
+                        .GetAwaiter().GetResult();
+            Console.WriteLine($"\n>>> Result as object: {response.GetProperty("id")}");
         }
     }
 }
