@@ -311,8 +311,6 @@ namespace RestWrapperCore
             else
                 Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
 
-            //Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
-
             return httpResponse;
         }
 
@@ -363,11 +361,5 @@ namespace RestWrapperCore
             return httpResponse;
         }
 
-        #endregion
-
-        #region Parser
-
-
-        #endregion
     }
 }
