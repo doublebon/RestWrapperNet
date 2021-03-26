@@ -361,5 +361,6 @@ namespace RestWrapperCore
             return httpResponse;
         }
 
+        #endregion
     }
 }
