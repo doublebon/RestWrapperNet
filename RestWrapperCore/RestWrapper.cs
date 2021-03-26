@@ -48,7 +48,7 @@ namespace RestWrapperCore
 
             public Builder Url(string baseUrl)
             {
-                _restCore.Url = baseUrl;
+                _restCore.Url = baseUrl.Replace("https://","").Replace("http://","");
                 return this;
             }
 
