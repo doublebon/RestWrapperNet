@@ -12,7 +12,8 @@ namespace Example
         {
             ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
         };
-        //Нужно, чтобы не плодить инстансы
+
+        //Needs for use one client instance
         private static readonly HttpClient _client = new HttpClient(_clientHandler, false) { Timeout = new TimeSpan(0, 5, 0) };
 
         static void Main(string[] args)
@@ -62,7 +63,7 @@ namespace Example
                         .Build()
                         .SendPost<JsonElement, ObjToJson>(postObj)
                         .GetAwaiter().GetResult();
-            Console.WriteLine($"\n>>> Result as object: {response.GetProperty("id")}");
+            Console.WriteLine($"\n>>> Result of post object: {response.GetProperty("id")}");
         }
     }
 }

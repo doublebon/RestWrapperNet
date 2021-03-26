@@ -121,7 +121,7 @@ namespace RestWrapperCore
         #region RequestsConfigure
         private string GetConfiguredUrl()
         {
-            if (Url == null) throw new NoNullAllowedException("BaseApiUrl can't be null !");
+            if (Url == null) throw new NoNullAllowedException("Url can't be empty !");
 
             var protocol = SecureConnect ? "https" : "http";
             var coreUrl = new Uri($"{protocol}://{Url}");
