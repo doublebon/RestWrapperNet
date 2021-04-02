@@ -163,7 +163,7 @@ namespace RestWrapperCore
 
             var url = GetConfiguredUrl();
             Console.WriteLine($"\n> GET {url}\n");
-            using var httpResponse = await _client.GetAsync(url);
+            var httpResponse = await _client.GetAsync(url);
 
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
@@ -186,7 +186,7 @@ namespace RestWrapperCore
 
             var url = GetConfiguredUrl();
             Console.WriteLine($"\n> GET {url}\n");
-            using var httpResponse = await _client.GetAsync(url);
+            var httpResponse = await _client.GetAsync(url);
 
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
@@ -216,7 +216,7 @@ namespace RestWrapperCore
             if (!disableBodyLogs)
                 Console.WriteLine($"-> Request Body:\n{serializedObject}");
 
-            using var httpResponse = await _client.PostAsync(url, todoItemJson);
+            var httpResponse = await _client.PostAsync(url, todoItemJson);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
@@ -244,7 +244,7 @@ namespace RestWrapperCore
             if (!disableBodyLogs)
                 Console.WriteLine($"-> Request Body:\n{serializedObject}");
 
-            using var httpResponse = await _client.PostAsync(url, todoItemJson);
+            var httpResponse = await _client.PostAsync(url, todoItemJson);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
@@ -276,7 +276,7 @@ namespace RestWrapperCore
 
             //Console.WriteLine($"\n> PUT {url}\n-> Request Body:\n{serializedObject}");
 
-            using var httpResponse = await _client.PutAsync(url, todoItemJson);
+            var httpResponse = await _client.PutAsync(url, todoItemJson);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
             if (disableBodyLogs)
@@ -302,7 +302,7 @@ namespace RestWrapperCore
             if (!disableBodyLogs)
                 Console.WriteLine($"-> Request Body:\n{serializedObject}");
 
-            using var httpResponse = await _client.PutAsync(url, todoItemJson);
+            var httpResponse = await _client.PutAsync(url, todoItemJson);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
@@ -325,7 +325,7 @@ namespace RestWrapperCore
 
             var url = GetConfiguredUrl();
             Console.WriteLine($"\n> DELETE {url}\n");
-            using var httpResponse = await _client.DeleteAsync(url);
+            var httpResponse = await _client.DeleteAsync(url);
 
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
@@ -348,7 +348,7 @@ namespace RestWrapperCore
 
             var url = GetConfiguredUrl();
             Console.WriteLine($"\n> DELETE {url}\n");
-            using var httpResponse = await _client.DeleteAsync(url);
+            var httpResponse = await _client.DeleteAsync(url);
 
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
@@ -359,6 +359,15 @@ namespace RestWrapperCore
                 Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
 
             return httpResponse;
+        }
+
+        #endregion
+
+        #region Parser
+        public static TClass ParseAs<TClass>(HttpResponseMessage response)
+        {
+            response.EnsureSuccessStatusCode();
+            return JsonSerializer.Deserialize<TClass>(response.Content.ReadAsStringAsync().GetAwaiter().GetResult(), new JsonSerializerOptions() { WriteIndented = true });
         }
 
         #endregion
