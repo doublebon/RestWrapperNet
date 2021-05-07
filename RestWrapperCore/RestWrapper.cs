@@ -237,6 +237,8 @@ namespace RestWrapperCore
 
             var url = GetConfiguredUrl();
 
+            Console.WriteLine($"\n> POST {url}");
+            
             var httpResponse = await _client.PostAsync(url, form);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
