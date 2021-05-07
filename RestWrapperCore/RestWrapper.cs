@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -227,6 +228,25 @@ namespace RestWrapperCore
 
             httpResponse.EnsureSuccessStatusCode();
             return JsonSerializer.Deserialize<TClass>(await httpResponse.Content.ReadAsStringAsync(), options);
+        }
+
+        public async Task<HttpResponseMessage> SendPostMultipart(MultipartFormDataContent form, bool ignoreNullValues = false, bool disableBodyLogs = false)
+        {
+            foreach (var (key, value) in Headers)
+                _client.DefaultRequestHeaders.Add(key, value);
+
+            var url = GetConfiguredUrl();
+
+            var httpResponse = await _client.PostAsync(url, form);
+            //Clean default headers after request
+            _client.DefaultRequestHeaders.Clear();
+
+            if (disableBodyLogs)
+                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
+            else
+                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+
+            return httpResponse;
         }
 
         public async Task<HttpResponseMessage> SendPost<T>(T obj, bool ignoreNullValues = false, bool disableBodyLogs = false)
