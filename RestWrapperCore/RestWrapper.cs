@@ -15,7 +15,9 @@ namespace RestWrapperCore
     {
         #region MainVariables
 
+        public static bool LogsEnabled { get; set; } = false;
         private static HttpClient _client;
+        private static RWLogger   _logger = new RWLogger();
 
         RestWrapper(HttpClient client)
         {
@@ -257,23 +259,27 @@ namespace RestWrapperCore
             foreach (var (key, value) in Headers)
                 _client.DefaultRequestHeaders.Add(key, value);
 
-            var options = new JsonSerializerOptions { WriteIndented = true, IgnoreNullValues = ignoreNullValues, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All) };
+            var options = new JsonSerializerOptions { IgnoreNullValues = ignoreNullValues, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All) };
             var serializedObject = JsonSerializer.Serialize(obj, options);
             var todoItemJson = new StringContent(serializedObject, Encoding.UTF8, "application/json");
             var url = GetConfiguredUrl();
 
-            Console.WriteLine($"\n> POST {url}");
-            if (!disableBodyLogs)
-                Console.WriteLine($"-> Request Body:\n{serializedObject}");
+           
+            //Console.WriteLine($"\n> POST {url}");
+            //if (!disableBodyLogs)
+            //    Console.WriteLine($"-> Request Body:\n{serializedObject}");
 
             var httpResponse = await _client.PostAsync(url, todoItemJson);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
-            if (disableBodyLogs)
-                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
-            else
-                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+            if (LogsEnabled)
+                _logger.PrintLogs(httpResponse);
+
+            //if (disableBodyLogs)
+            //    Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
+            //else
+            //    Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
 
             return httpResponse;
         }
