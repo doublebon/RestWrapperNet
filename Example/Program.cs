@@ -16,22 +16,23 @@ namespace Example
 
         //Needs for use one client instance
         private static readonly HttpClient _client = new HttpClient(_clientHandler, false) { Timeout = new TimeSpan(0, 5, 0) };
-        
+
 
 
         static void Main(string[] args)
         {
             RestWrapper.LogsEnabled = true;
-            requestWithPostAsStatus();
-            //requestWithJsonAsObject2();
-            //requestWithJsonElementAsResponse();
-            //requestWithStatusCodeAsResult();
-            //requestWithPostAsStatus();
-            //requestWithJsonAsObject();
-            //requestWithPostObject();
+            RequestWithPostAsStatus();
+            RequestWithParsingResponse();
+            RequestWithJsonElementAsResponse();
+            RequestWithStatusCodeAsResult();
+            RequestWithPostAsStatus();
+            RequestWithJsonAsObject();
+            RequestWithPostObject();
+            RequestWithWrongUrl();
         }
 
-        private static void requestWithJsonElementAsResponse()
+        private static void RequestWithJsonElementAsResponse()
         {
             var response = RestWrapper.CreateWithHttpClient(_client)
                         .Url($"https://reqres.in/api/users/2")
@@ -41,7 +42,7 @@ namespace Example
             Console.WriteLine($"\n>>> Result from jsonElement: {response.GetProperty("data").GetProperty("email")}");
         }
 
-        private static void requestWithStatusCodeAsResult()
+        private static void RequestWithStatusCodeAsResult()
         {
             var response = RestWrapper.CreateWithHttpClient(_client)
                         .Url($"https://reqres.in/api/users/2")
@@ -52,7 +53,7 @@ namespace Example
             Console.WriteLine($"\n>>> Result status code: {(int)response.StatusCode}");
         }
 
-        private static void requestWithJsonAsObject()
+        private static void RequestWithJsonAsObject()
         {
             var response = RestWrapper.CreateWithHttpClient(_client)
                         .Url($"https://reqres.in/api/users/2")
@@ -62,7 +63,7 @@ namespace Example
             Console.WriteLine($"\n>>> Result as object: {response.Data.Email}");
         }
 
-        private static void requestWithJsonAsObject2()
+        private static void RequestWithParsingResponse()
         {
             var response = RestWrapper.CreateWithHttpClient(_client)
                         .Url($"https://reqres.in/api/users/2")
@@ -74,31 +75,43 @@ namespace Example
             Console.WriteLine($"\n>>> Result as object: {resp.Data.Email}");
         }
 
-        private static void requestWithPostObject()
+        private static void RequestWithPostObject()
         {
-            var postObj = new ObjToJson { Job = "leader", Name = "morpheus" };
+            var postObj = new ObjToJson {Job = "leader", Name = "morpheus"};
 
             var response = RestWrapper.CreateWithHttpClient(_client)
                         .Url($"https://reqres.in/api/users/2")
                         .Build()
                         .SendPost<JsonElement, ObjToJson>(postObj)
                         .GetAwaiter().GetResult();
-            Console.WriteLine($"\n>>> Result of post object: {response.GetProperty("id")}");
+            Console.WriteLine($"\n>>> Id from response is: {response.GetProperty("id")}");
         }
 
-        private static void requestWithPostAsStatus()
+        private static int RequestWithPostAsStatus()
         {
             var postObj = new ObjToJson { Job = "leader", Name = "morpheus" };
 
-            var response = RestWrapper.CreateWithHttpClient(_client)
-                        .Url($"https://reqres.in/api/users/2")
-                        .AddHeaders("Custom", "Test")
-                        .AddHeaders("Custom2", "Test2")
-                        .Build()
-                        .SendPost<ObjToJson>(postObj)
-                        .GetAwaiter().GetResult();
-            //new LogTest().printLogs(response);
-            //Console.WriteLine($"\n>>> Result of post object:");
+            return (int)RestWrapper.CreateWithHttpClient(_client)
+                            .Url($"https://reqres.in/api/users/2")
+                            .AddHeaders("Custom", "Test")
+                            .AddHeaders("Custom2", "Test2")
+                            .AddHeaders("Custom3", "Test2")
+                            .Build()
+                            .SendPost<ObjToJson>(postObj)
+                            .GetAwaiter().GetResult().StatusCode;
+        }
+
+        private static int RequestWithWrongUrl()
+        {
+            var postObj = new ObjToJson { Job = "leader", Name = "morpheus" };
+
+            return (int)RestWrapper.CreateWithHttpClient(_client)
+                            .Url($"raasdasdasdsdasdasdeqres.in/users/2")
+                            .AddHeaders("Custom", "Test")
+                            .AddHeaders("Custom2", "Test2")
+                            .Build()
+                            .SendPost<ObjToJson>(postObj)
+                            .GetAwaiter().GetResult().StatusCode;
         }
     }
 }
