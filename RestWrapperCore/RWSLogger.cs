@@ -27,6 +27,7 @@ namespace RestWrapperCore
         }
 
         public static void ErrorLog(string message) => _logger.LogError(message);
+        public static void InfoLog(string message) => _logger.LogInformation(message);
 
         public static string ResponseLogs(HttpResponseMessage response)
         {
