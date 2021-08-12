@@ -21,10 +21,10 @@ namespace Example
 
         static void Main(string[] args)
         {
-            RestWrapper.LogsEnabled = true;
+            //RestWrapper.LogsEnabled = true;
+            RequestWithJsonElementAsResponse();
             RequestWithPostAsStatus();
             RequestWithParsingResponse();
-            RequestWithJsonElementAsResponse();
             RequestWithStatusCodeAsResult();
             RequestWithPostAsStatus();
             RequestWithJsonAsObject();
@@ -36,6 +36,7 @@ namespace Example
         {
             var response = RestWrapper.CreateWithHttpClient(_client)
                         .Url($"https://reqres.in/api/users/2")
+                        .LogsEnabled(false)
                         .Build()
                         .SendGet<JsonElement>()
                         .GetAwaiter().GetResult();

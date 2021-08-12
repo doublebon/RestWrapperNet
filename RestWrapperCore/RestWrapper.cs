@@ -15,9 +15,8 @@ namespace RestWrapperCore
     {
         #region MainVariables
 
-        public static bool LogsEnabled { get; set; } = false;
         private static HttpClient _client;
-        private static RWLogger   _logger = new RWLogger();
+      
 
         RestWrapper(HttpClient client)
         {
@@ -30,6 +29,7 @@ namespace RestWrapperCore
         private Dictionary<string, string> Query { get; } = new Dictionary<string, string>();
         private Dictionary<string, string> PathParams { get; } = new Dictionary<string, string>();
         private bool SecureConnect { get; set; } = true;
+        private bool LogsEnabled   { get; set; } = false;
         private int UrlPort { get; set; } = -1;
         private static ThreadLocal<string> _threadUrl = new ThreadLocal<string>();
 
@@ -66,8 +66,8 @@ namespace RestWrapperCore
                 if (!_restCore.Headers.ContainsKey(key)){
                     _restCore.Headers.Add(key, value);
                 }
-                else 
-                    _logger.ErrorLog($"Try to add duplicate header {key}");
+                else
+                    RWSLogger.ErrorLog($"Try to add duplicate header {key}");
                
                 return this;
             }
@@ -105,6 +105,12 @@ namespace RestWrapperCore
             public Builder SecureConnect(bool isSecure)
             {
                 _restCore.SecureConnect = isSecure;
+                return this;
+            }
+
+            public Builder LogsEnabled(bool isLogsEnabled)
+            {
+                _restCore.LogsEnabled = isLogsEnabled;
                 return this;
             }
 
@@ -176,7 +182,7 @@ namespace RestWrapperCore
             _client.DefaultRequestHeaders.Clear();
 
             if (LogsEnabled)
-                _logger.ResponseLogs(httpResponse);
+                RWSLogger.ResponseLogs(httpResponse);
 
             //Check that response status code is 200
             httpResponse.EnsureSuccessStatusCode();
@@ -195,7 +201,7 @@ namespace RestWrapperCore
             _client.DefaultRequestHeaders.Clear();
 
             if (LogsEnabled)
-                _logger.ResponseLogs(httpResponse);
+                RWSLogger.ResponseLogs(httpResponse);
 
             return httpResponse;
         }
@@ -218,7 +224,7 @@ namespace RestWrapperCore
             _client.DefaultRequestHeaders.Clear();
 
             if (LogsEnabled)
-                _logger.ResponseLogs(httpResponse);
+                RWSLogger.ResponseLogs(httpResponse);
 
             httpResponse.EnsureSuccessStatusCode();
             return JsonSerializer.Deserialize<TClass>(await httpResponse.Content.ReadAsStringAsync(), options);
@@ -235,7 +241,7 @@ namespace RestWrapperCore
             _client.DefaultRequestHeaders.Clear();
 
             if (LogsEnabled)
-                _logger.ResponseLogs(httpResponse);
+                RWSLogger.ResponseLogs(httpResponse);
 
             return httpResponse;
         }
@@ -256,7 +262,7 @@ namespace RestWrapperCore
             _client.DefaultRequestHeaders.Clear();
 
             if (LogsEnabled)
-                _logger.ResponseLogs(httpResponse);
+                RWSLogger.ResponseLogs(httpResponse);
 
             return httpResponse;
         }
@@ -280,7 +286,7 @@ namespace RestWrapperCore
             _client.DefaultRequestHeaders.Clear();
             
             if (LogsEnabled)
-                _logger.ResponseLogs(httpResponse);
+                RWSLogger.ResponseLogs(httpResponse);
 
             httpResponse.EnsureSuccessStatusCode();
             return JsonSerializer.Deserialize<TClass>(await httpResponse.Content.ReadAsStringAsync(), options);
@@ -302,7 +308,7 @@ namespace RestWrapperCore
             _client.DefaultRequestHeaders.Clear();
 
             if (LogsEnabled)
-                _logger.ResponseLogs(httpResponse);
+                RWSLogger.ResponseLogs(httpResponse);
 
             return httpResponse;
         }
@@ -322,7 +328,7 @@ namespace RestWrapperCore
             _client.DefaultRequestHeaders.Clear();
 
             if (LogsEnabled)
-                _logger.ResponseLogs(httpResponse);
+                RWSLogger.ResponseLogs(httpResponse);
 
             //Check that response status code is 200
             httpResponse.EnsureSuccessStatusCode();
@@ -341,7 +347,7 @@ namespace RestWrapperCore
             _client.DefaultRequestHeaders.Clear();
 
             if (LogsEnabled)
-                _logger.ResponseLogs(httpResponse);
+                RWSLogger.ResponseLogs(httpResponse);
 
             return httpResponse;
         }
