@@ -16,6 +16,7 @@ namespace RestWrapperCore
         #region MainVariables
 
         private static HttpClient _client;
+      
 
         RestWrapper(HttpClient client)
         {
@@ -28,6 +29,7 @@ namespace RestWrapperCore
         private Dictionary<string, string> Query { get; } = new Dictionary<string, string>();
         private Dictionary<string, string> PathParams { get; } = new Dictionary<string, string>();
         private bool SecureConnect { get; set; } = true;
+        private bool LogsEnabled   { get; set; } = false;
         private int UrlPort { get; set; } = -1;
         private static ThreadLocal<string> _threadUrl = new ThreadLocal<string>();
 
@@ -61,7 +63,12 @@ namespace RestWrapperCore
 
             public Builder AddHeaders(string key, string value)
             {
-                _restCore.Headers.Add(key, value);
+                if (!_restCore.Headers.ContainsKey(key)){
+                    _restCore.Headers.Add(key, value);
+                }
+                else
+                    RWSLogger.ErrorLog($"Try to add duplicate header {key}");
+               
                 return this;
             }
 
@@ -98,6 +105,12 @@ namespace RestWrapperCore
             public Builder SecureConnect(bool isSecure)
             {
                 _restCore.SecureConnect = isSecure;
+                return this;
+            }
+
+            public Builder LogsEnabled(bool isLogsEnabled)
+            {
+                _restCore.LogsEnabled = isLogsEnabled;
                 return this;
             }
 
@@ -156,23 +169,20 @@ namespace RestWrapperCore
         #endregion
 
         #region Get
-        public async Task<TClass> SendGet<TClass>(bool disableBodyLogs = false)
+        public async Task<TClass> SendGet<TClass>()
         {
             //Setting headers
             foreach (var (key, value) in Headers)
                 _client.DefaultRequestHeaders.Add(key, value);
 
             var url = GetConfiguredUrl();
-            Console.WriteLine($"\n> GET {url}\n");
             var httpResponse = await _client.GetAsync(url);
 
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
-            if (disableBodyLogs)
-                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
-            else
-                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+            if (LogsEnabled)
+                RWSLogger.ResponseLogs(httpResponse);
 
             //Check that response status code is 200
             httpResponse.EnsureSuccessStatusCode();
@@ -186,16 +196,13 @@ namespace RestWrapperCore
                 _client.DefaultRequestHeaders.Add(key, value);
 
             var url = GetConfiguredUrl();
-            Console.WriteLine($"\n> GET {url}\n");
             var httpResponse = await _client.GetAsync(url);
-
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
-            if (disableBodyLogs)
-                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
-            else
-                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+            if (LogsEnabled)
+                RWSLogger.ResponseLogs(httpResponse);
+
             return httpResponse;
         }
 
@@ -212,19 +219,12 @@ namespace RestWrapperCore
             var serializedObject = JsonSerializer.Serialize(obj, options);
             var todoItemJson = new StringContent(serializedObject, Encoding.UTF8, "application/json");
             var url = GetConfiguredUrl();
-
-            Console.WriteLine($"\n> POST {url}");
-            if (!disableBodyLogs)
-                Console.WriteLine($"-> Request Body:\n{serializedObject}");
-
             var httpResponse = await _client.PostAsync(url, todoItemJson);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
-            if (disableBodyLogs)
-                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
-            else
-                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+            if (LogsEnabled)
+                RWSLogger.ResponseLogs(httpResponse);
 
             httpResponse.EnsureSuccessStatusCode();
             return JsonSerializer.Deserialize<TClass>(await httpResponse.Content.ReadAsStringAsync(), options);
@@ -236,17 +236,12 @@ namespace RestWrapperCore
                 _client.DefaultRequestHeaders.Add(key, value);
 
             var url = GetConfiguredUrl();
-
-            Console.WriteLine($"\n> POST {url}");
-            
             var httpResponse = await _client.PostAsync(url, form);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
-            if (disableBodyLogs)
-                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
-            else
-                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+            if (LogsEnabled)
+                RWSLogger.ResponseLogs(httpResponse);
 
             return httpResponse;
         }
@@ -257,23 +252,17 @@ namespace RestWrapperCore
             foreach (var (key, value) in Headers)
                 _client.DefaultRequestHeaders.Add(key, value);
 
-            var options = new JsonSerializerOptions { WriteIndented = true, IgnoreNullValues = ignoreNullValues, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All) };
+            var options = new JsonSerializerOptions { IgnoreNullValues = ignoreNullValues, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All) };
             var serializedObject = JsonSerializer.Serialize(obj, options);
             var todoItemJson = new StringContent(serializedObject, Encoding.UTF8, "application/json");
             var url = GetConfiguredUrl();
-
-            Console.WriteLine($"\n> POST {url}");
-            if (!disableBodyLogs)
-                Console.WriteLine($"-> Request Body:\n{serializedObject}");
 
             var httpResponse = await _client.PostAsync(url, todoItemJson);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
-            if (disableBodyLogs)
-                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
-            else
-                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+            if (LogsEnabled)
+                RWSLogger.ResponseLogs(httpResponse);
 
             return httpResponse;
         }
@@ -292,19 +281,12 @@ namespace RestWrapperCore
             var todoItemJson = new StringContent(serializedObject, Encoding.UTF8, "application/json");
             var url = GetConfiguredUrl();
 
-            Console.WriteLine($"\n> PUT {url}");
-            if (!disableBodyLogs)
-                Console.WriteLine($"-> Request Body:\n{serializedObject}");
-
-            //Console.WriteLine($"\n> PUT {url}\n-> Request Body:\n{serializedObject}");
-
             var httpResponse = await _client.PutAsync(url, todoItemJson);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
-            if (disableBodyLogs)
-                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
-            else
-                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+            
+            if (LogsEnabled)
+                RWSLogger.ResponseLogs(httpResponse);
 
             httpResponse.EnsureSuccessStatusCode();
             return JsonSerializer.Deserialize<TClass>(await httpResponse.Content.ReadAsStringAsync(), options);
@@ -320,18 +302,13 @@ namespace RestWrapperCore
             var serializedObject = JsonSerializer.Serialize(obj, options);
             var todoItemJson = new StringContent(serializedObject, Encoding.UTF8, "application/json");
             var url = GetConfiguredUrl();
-            Console.WriteLine($"\n> PUT {url}");
-            if (!disableBodyLogs)
-                Console.WriteLine($"-> Request Body:\n{serializedObject}");
-
+            
             var httpResponse = await _client.PutAsync(url, todoItemJson);
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
-            if (disableBodyLogs)
-                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
-            else
-                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+            if (LogsEnabled)
+                RWSLogger.ResponseLogs(httpResponse);
 
             return httpResponse;
         }
@@ -346,16 +323,12 @@ namespace RestWrapperCore
                 _client.DefaultRequestHeaders.Add(key, value);
 
             var url = GetConfiguredUrl();
-            Console.WriteLine($"\n> DELETE {url}\n");
             var httpResponse = await _client.DeleteAsync(url);
-
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
-            if (disableBodyLogs)
-                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
-            else
-                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+            if (LogsEnabled)
+                RWSLogger.ResponseLogs(httpResponse);
 
             //Check that response status code is 200
             httpResponse.EnsureSuccessStatusCode();
@@ -369,16 +342,12 @@ namespace RestWrapperCore
                 _client.DefaultRequestHeaders.Add(key, value);
 
             var url = GetConfiguredUrl();
-            Console.WriteLine($"\n> DELETE {url}\n");
             var httpResponse = await _client.DeleteAsync(url);
-
             //Clean default headers after request
             _client.DefaultRequestHeaders.Clear();
 
-            if (disableBodyLogs)
-                Console.WriteLine($"<- Response status code: {(int)httpResponse.StatusCode}");
-            else
-                Console.WriteLine($"<- Response body: \n{httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()}");
+            if (LogsEnabled)
+                RWSLogger.ResponseLogs(httpResponse);
 
             return httpResponse;
         }
