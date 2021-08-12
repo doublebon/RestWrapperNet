@@ -7,7 +7,7 @@ using System.Text;
 
 namespace RestWrapperCore
 {
-    class RWSLogger
+    public class RWSLogger
     {
         public static readonly ILogger<RWSLogger> _logger;
 
